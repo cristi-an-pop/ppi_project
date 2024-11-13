@@ -1,0 +1,18 @@
+.offscreen {
+    position: absolute;
+    left: -9999px;
+}
+
+.valid {
+    color: limegreen;
+    margin-left: 0.5em;
+}
+
+.invalid {
+    color: red;
+    margin-left: 0.5em;
+}
+
+.text-danger {
+    color: red;
+}
