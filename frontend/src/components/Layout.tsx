@@ -25,7 +25,7 @@ const Layout = () => {
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            Datavid Cake Tracker
+            ImplantIQ
           </Typography>
           {auth?.username ? (
             <>
@@ -33,8 +33,8 @@ const Layout = () => {
                 <Button color="inherit" component={Link} to="/">
                   Home
                 </Button>
-                <Button color="inherit" component={Link} to="/members">
-                  Members
+                <Button color="inherit" component={Link} to="/cases">
+                  Cases
                 </Button>
               </Box>
               <Button color="inherit" onClick={signOut}>

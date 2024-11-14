@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const memberRoutes = require('./routes/member.routes');
 const authRoutes = require('./routes/auth.routes');
+const caseRoutes = require('./routes/case.routes');
 const refreshTokenRoutes = require('./routes/refreshToken.routes');
 const verifyJwt = require('./middlewares/verifyJwt');
 const verifyAdminRole = require('./middlewares/verifyAdminRole');
@@ -30,6 +31,7 @@ app.use('/api', refreshTokenRoutes);
 
 app.use(verifyJwt);
 app.use('/api', memberRoutes);
+app.use('/api', caseRoutes);
 
 const PORT = process.env.PORT || 5000;
 

@@ -11,6 +11,9 @@ import PersistLogin from "./components/PersistLogin";
 import MemberEdit from "./components/MemberEdit";
 import MemberView from "./components/MemberView";
 import Layout from "./components/Layout";
+import CaseSelector from "./components/CaseSelector/CaseSelector";
+import CaseForm from "./components/CaseSelector/CaseForm";
+import CaseReport from "./components/CaseReport/CaseReport";
 
 function App() {
   return (
@@ -28,10 +31,16 @@ function App() {
               <Route path="/members/new" element={<MemberForm />} />
               <Route path="/members/edit/:id" element={<MemberEdit />} />
               <Route path="/members/:id" element={<MemberView />} />
+              <Route path="/cases" element={<CaseSelector />} />
+              <Route path="/cases/new" element={<CaseForm />} />
             </Route>
           </Route>
         </Route>
-
+        <Route element={<PersistLogin />}>
+          <Route element={<RequireAuth allowedRoles={["admin", "user"]} />}>
+            <Route path="/cases/:id" element={<CaseReport />} />
+          </Route>
+        </Route>
         <Route path="*" element={<Missing />} />
       </Routes>
     </Router>
