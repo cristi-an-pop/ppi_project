@@ -11,10 +11,11 @@ const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
     height: '100vh',
+    backgroundColor: 'black'
   },
   sideMenu: {
     width: '80px',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#3A3A3A',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -24,12 +25,14 @@ const useStyles = makeStyles((theme) => ({
     fontSize: '24px',
     fontWeight: 'bold',
     marginBottom: '16px',
+    color: '#3F53D9',
   },
   sideComponent: {
     width: '300px',
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#3A3A3A',
     padding: '16px',
     overflowY: 'auto',
+    color: '#ccc',
   },
   canvasContainer: {
     flexGrow: 1,
@@ -42,13 +45,15 @@ const useStyles = makeStyles((theme) => ({
   canvas: {
     width: '100%',
     height: '100%',
-    border: '1px solid #ccc',
+    border: '1px solid black',
     backgroundColor: 'black',
   },
   toolbar: {
     display: 'flex',
     justifyContent: 'center',
     marginBottom: '16px',
+    //backgroundColor: '#3A3A3A',
+    color: '#ccc'
   },
 }));
 
@@ -121,7 +126,7 @@ const [panStart, setPanStart] = useState({ x: 0, y: 0 });
       </div>
       <div className={classes.sideComponent}>
         <Typography variant="h6">Case Information</Typography>
-        {/* Add case information details here */}
+        {"lorem ipsum dolor sit amet"}
       </div>
       <div className={classes.canvasContainer}>
         <div className={classes.toolbar}>
@@ -130,9 +135,6 @@ const [panStart, setPanStart] = useState({ x: 0, y: 0 });
           </IconButton>
           <IconButton>
             <ZoomOutIcon onClick={handleZoomOut}/>
-          </IconButton>
-          <IconButton>
-            <PanToolIcon />
           </IconButton>
         </div>
         <canvas 

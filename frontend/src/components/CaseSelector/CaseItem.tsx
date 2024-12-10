@@ -17,8 +17,8 @@ const CaseItem: React.FC<CaseItemProps> = ({ caseItem, onDelete }) => {
     }
 
     return (
-        <Card onClick={handleClick}>
-            <CardContent>
+        <Card>
+            <CardContent onClick={handleClick}>
                 <Typography variant="h5">{caseItem.title}</Typography>
             </CardContent>
             <IconButton 
