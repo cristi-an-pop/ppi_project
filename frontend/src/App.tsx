@@ -1,19 +1,19 @@
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Home from "./components/Home";
-import MemberForm from "./components/MemberForm";
-import MemberList from "./components/MemberList";
 import Register from "./components/Register";
 import Login from "./components/Login";
 import Unauthorized from "./components/Unauthorized";
 import RequireAuth from "./components/RequireAuth";
 import Missing from "./components/Missing";
 import PersistLogin from "./components/PersistLogin";
-import MemberEdit from "./components/MemberEdit";
-import MemberView from "./components/MemberView";
 import Layout from "./components/Layout";
-import CaseSelector from "./components/CaseSelector/CaseSelector";
-import CaseForm from "./components/CaseSelector/CaseForm";
-import CaseReport from "./components/CaseReport/CaseReport";
+import CaseSelector from "./components/Cases/CaseSelector";
+import CaseForm from "./components/Cases/CaseForm";
+import CaseReport from "./components/Cases/CaseReport";
+import ClientList from "./components/Client/ClientList";
+import ClientForm from "./components/Client/ClientForm";
+import ClientView from "./components/Client/ClientView";
+import ClientEdit from "./components/Client/ClientEdit";
 
 function App() {
   return (
@@ -27,18 +27,14 @@ function App() {
           <Route element={<PersistLogin />}>
             <Route element={<RequireAuth allowedRoles={["admin", "user"]} />}>
               <Route path="/" element={<Home />} />
-              <Route path="/members" element={<MemberList />} />
-              <Route path="/members/new" element={<MemberForm />} />
-              <Route path="/members/edit/:id" element={<MemberEdit />} />
-              <Route path="/members/:id" element={<MemberView />} />
-              <Route path="/cases" element={<CaseSelector />} />
-              <Route path="/cases/new" element={<CaseForm />} />
+              <Route path="/clients" element={<ClientList />} />
+              <Route path="/clients/new" element={<ClientForm />} />
+              <Route path="/clients/:id" element={<ClientView />} />
+              <Route path="/clients/edit/:id" element={<ClientEdit />} />
+              <Route path="/clients/:clientId/cases" element={<CaseSelector />} />
+              <Route path="/clients/:clientId/cases/new" element={<CaseForm />} />
+              <Route path="/clients/:clientId/cases/:caseId" element={<CaseReport />} />
             </Route>
-          </Route>
-        </Route>
-        <Route element={<PersistLogin />}>
-          <Route element={<RequireAuth allowedRoles={["admin", "user"]} />}>
-            <Route path="/cases/:id" element={<CaseReport />} />
           </Route>
         </Route>
         <Route path="*" element={<Missing />} />

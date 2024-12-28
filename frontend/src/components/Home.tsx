@@ -22,9 +22,9 @@ const Home = () => {
               variant="contained"
               color="primary"
               component={Link}
-              to="/cases"
+              to="/clients"
             >
-              Cases
+              Clients
             </Button>
           </Box>
         </>

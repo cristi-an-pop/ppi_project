@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import memberService from "../services/member.service";
-import { Member } from "../types/member";
+import clientService from "../../services/client.service";
+import { Client } from "../../types/client";
 import {
   Box,
   Container,
@@ -14,88 +14,88 @@ import {
   DialogContentText,
   DialogTitle,
 } from "@mui/material";
-import useAxiosPrivate from "../hooks/useAxiosPrivate";
-import MemberListItem from "./MemberListItem";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
+import ClientListItem from "./ClientListItem";
 
-const MemberList = () => {
-  const [members, setMembers] = useState<Member[]>([]);
+const ClientList = () => {
+  const [clients, setClients] = useState<Client[]>([]);
   const [sorted, setSorted] = useState<boolean>(false);
   const [open, setOpen] = useState<boolean>(false);
-  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
 
   const axiosPrivate = useAxiosPrivate();
   const navigate = useNavigate();
 
-  const fetchMembers = async () => {
-    const response = await memberService.getAllMembers(axiosPrivate, sorted);
+  const fetchClients = async () => {
+    const response = await clientService.getAllClients(axiosPrivate);
     // const response = sorted
-    //   ? await memberService.getSortedMembers(axiosPrivate)
-    //   : await memberService.getAllMembers(axiosPrivate);
-    setMembers(response.data);
+    //   ? await ClientService.getSortedClients(axiosPrivate)
+    //   : await ClientService.getAllClients(axiosPrivate);
+    setClients(response.data);
   };
 
   useEffect(() => {
-    fetchMembers();
+    fetchClients();
   }, [sorted]);
 
   const handleSortToggle = () => {
     setSorted(!sorted);
   };
 
-  const handleAddMember = () => {
-    navigate("/members/new");
+  const handleAddClient = () => {
+    navigate("/clients/new");
   };
 
   const handleView = (id: string) => {
-    navigate(`/members/${id}`);
+    navigate(`/clients/${id}`);
   };
 
   const handleEdit = (id: string) => {
-    navigate(`/members/edit/${id}`);
+    navigate(`/clients/edit/${id}`);
   };
 
   const handleDelete = async () => {
-    if (selectedMemberId !== null) {
+    if (selectedClientId !== null) {
       try {
-        await memberService.deleteMember(axiosPrivate, selectedMemberId);
-        setMembers(members.filter((member) => member.id !== selectedMemberId));
+        await clientService.deleteClient(axiosPrivate, selectedClientId);
+        setClients(clients.filter((client) => client.id !== selectedClientId));
       } catch (error) {
-        console.error("Failed to delete member", error);
+        console.error("Failed to delete Client", error);
       } finally {
         setOpen(false);
-        setSelectedMemberId(null);
+        setSelectedClientId(null);
       }
     }
   };
 
   const handleOpenDialog = (id: string) => {
-    setSelectedMemberId(id);
+    setSelectedClientId(id);
     setOpen(true);
   };
 
   const handleCloseDialog = () => {
     setOpen(false);
-    setSelectedMemberId(null);
+    setSelectedClientId(null);
   };
 
   return (
     <Container>
       <Typography variant="h4" gutterBottom>
-        Members
+        Clients
       </Typography>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <Button variant="contained" color="primary" onClick={handleSortToggle}>
-          {sorted ? "Show Members Unsorted" : "Sort by Closest Birthdays"}
+          {sorted ? "Show Clients Unsorted" : "Sort by Closest Birthdays"}
         </Button>
-        <Button variant="contained" color="secondary" onClick={handleAddMember}>
-          Add Member
+        <Button variant="contained" color="secondary" onClick={handleAddClient}>
+          Add Client
         </Button>
       </Box>
       <List>
-        {members.map((member) => (
-          <MemberListItem
-            key={member.id}
-            member={member}
+        {clients.map((client) => (
+          <ClientListItem
+            key={client.id}
+            Client={client}
             onView={handleView}
             onEdit={handleEdit}
             onDelete={handleOpenDialog}
@@ -106,7 +106,7 @@ const MemberList = () => {
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete this member?
+            Are you sure you want to delete this Client?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -122,4 +122,4 @@ const MemberList = () => {
   );
 };
 
-export default MemberList;
+export default ClientList;

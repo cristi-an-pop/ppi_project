@@ -2,12 +2,13 @@ const Case = require('../models/case.model');
 
 // Create a new Case
 exports.create = async (req, res) => {
-  if (!req.body.title) {
+  if (!req.body.title || !req.body.clientId) {
     return res.status(400).send({ message: "All fields are required!" });
   }
 
   const caseData = {
     title: req.body.title,
+    clientId: req.body.clientId,
   };
 
   try {
@@ -55,6 +56,18 @@ exports.delete = async (req, res) => {
     } else {
       res.send({ message: `Cannot delete Case!` });
     }
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+};
+
+// Get cases by client id
+exports.findByClientId = async (req, res) => {
+  const clientId = req.query.clientId;
+  console.log(clientId);
+  try {
+    const cases = await Case.findAll({ where: { clientId: clientId } });
+    res.send(cases);
   } catch (error) {
     res.status(500).send({ message: error.message });
   }

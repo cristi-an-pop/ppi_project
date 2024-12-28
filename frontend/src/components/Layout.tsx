@@ -33,8 +33,8 @@ const Layout = () => {
                 <Button color="inherit" component={Link} to="/">
                   Home
                 </Button>
-                <Button color="inherit" component={Link} to="/cases">
-                  Cases
+                <Button color="inherit" component={Link} to="/clients">
+                  Clients
                 </Button>
               </Box>
               <Button color="inherit" onClick={signOut}>
