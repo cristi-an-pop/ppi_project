@@ -1,17 +1,17 @@
 import { ListItem, Grid, Typography, IconButton } from "@mui/material";
 import { Visibility, Edit, Delete } from "@mui/icons-material";
-import { Member } from "../types/member";
-import RequireRole from "./RequireRole";
+import { Client } from "../../types/client";
+import RequireRole from "../RequireRole";
 
-interface MemberListItemProps {
-  member: Member;
+interface ClientListItemProps {
+  Client: Client;
   onView: (id: string) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
 }
 
-const MemberListItem: React.FC<MemberListItemProps> = ({
-  member,
+const ClientListItem: React.FC<ClientListItemProps> = ({
+  Client,
   onView,
   onEdit,
   onDelete,
@@ -23,20 +23,20 @@ const MemberListItem: React.FC<MemberListItemProps> = ({
           <Grid item xs container direction="row" spacing={2}>
             <Grid item xs>
               <Typography variant="subtitle1" component="div">
-                {member.firstName} {member.lastName}
+                {Client.firstName} {Client.lastName}
               </Typography>
               <Typography variant="body2" gutterBottom>
-                Birth Date: {member.birthDate}
+                Birth Date: {Client.birthDate}
               </Typography>
               <Typography variant="body2" color="textSecondary">
-                Location: {member.city}, {member.country}
+                Location: {Client.city}, {Client.country}
               </Typography>
             </Grid>
             <Grid item>
               <IconButton
                 edge="end"
                 aria-label="view"
-                onClick={() => onView(member.id!)}
+                onClick={() => onView(Client.id!)}
               >
                 <Visibility />
               </IconButton>
@@ -44,7 +44,7 @@ const MemberListItem: React.FC<MemberListItemProps> = ({
                 <IconButton
                   edge="end"
                   aria-label="edit"
-                  onClick={() => onEdit(member.id!)}
+                  onClick={() => onEdit(Client.id!)}
                 >
                   <Edit />
                 </IconButton>
@@ -53,7 +53,7 @@ const MemberListItem: React.FC<MemberListItemProps> = ({
                 <IconButton
                   edge="end"
                   aria-label="delete"
-                  onClick={() => onDelete(member.id!)}
+                  onClick={() => onDelete(Client.id!)}
                 >
                   <Delete />
                 </IconButton>
@@ -67,4 +67,4 @@ const MemberListItem: React.FC<MemberListItemProps> = ({
   );
 };
 
-export default MemberListItem;
+export default ClientListItem;

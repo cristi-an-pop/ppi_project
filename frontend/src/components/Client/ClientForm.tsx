@@ -1,47 +1,48 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import memberService from "../services/member.service";
-import { Member } from "../types/member";
-import { TextField, Button, Container, Typography } from "@mui/material";
-import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import React, { useState, useEffect } from "react";
+import {
+  TextField,
+  Button,
+  Container,
+  Typography,
+  Box,
+  Alert,
+} from "@mui/material";
+import ClientService from "../../services/client.service";
+import { Client } from "../../types/client";
+import useAxiosPrivate from "../../hooks/useAxiosPrivate";
+import { useNavigate } from "react-router-dom";
 
-const MemberEdit = () => {
-  const { id } = useParams<{ id: string }>();
-  const [formData, setFormData] = useState<Member>({
+const ClientForm = () => {
+  const axiosPrivate = useAxiosPrivate();
+  const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState<string>("");
+
+  const [formData, setFormData] = useState<Client>({
     firstName: "",
     lastName: "",
+    email: "",
     birthDate: "",
     country: "",
     city: "",
   });
-  const [errors, setErrors] = useState<{ [key in keyof Member]?: string }>({});
-  const axiosPrivate = useAxiosPrivate();
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchMember = async () => {
-      try {
-        const response = await memberService.getMemberById(axiosPrivate, id!);
-        console.log(response.data);
-        setFormData(response.data);
-      } catch (error) {
-        console.error("Failed to fetch member", error);
-      }
-    };
-
-    fetchMember();
-  }, [id, axiosPrivate]);
+  const [errors, setErrors] = useState<{ [key in keyof Client]?: string }>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
+  useEffect(() => {
+    setErrorMessage("");
+  }, [formData]);
+
   const validate = (): boolean => {
-    let tempErrors: { [key in keyof Member]?: string } = {};
+    let tempErrors: { [key in keyof Client]?: string } = {};
 
     if (!formData.firstName) tempErrors.firstName = "First Name is required";
     if (!formData.lastName) tempErrors.lastName = "Last Name is required";
+    if (!formData.email) tempErrors.email = "Email is required";
     if (!formData.birthDate) tempErrors.birthDate = "Birth Date is required";
     if (!formData.country) tempErrors.country = "Country is required";
     if (!formData.city) tempErrors.city = "City is required";
@@ -54,20 +55,37 @@ const MemberEdit = () => {
     e.preventDefault();
     if (validate()) {
       try {
-        await memberService.editMember(axiosPrivate, id!, formData);
-        navigate(-1);
-      } catch (error) {
-        alert("Failed to update member");
+        await ClientService.createClient(axiosPrivate, formData);
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          birthDate: "",
+          country: "",
+          city: "",
+        });
+        navigate("/Clients");
+      } catch (error: any) {
+        setErrorMessage("Failed to add Client");
       }
     }
   };
 
   return (
     <Container maxWidth="sm">
-      <Typography variant="h4" gutterBottom>
-        Update Member
-      </Typography>
-      <form onSubmit={handleSubmit}>
+      <Box
+        component="form"
+        onSubmit={handleSubmit}
+        sx={{ mt: 3, display: "flex", flexDirection: "column", gap: 2 }}
+      >
+        {errorMessage && (
+          <Alert severity="error" aria-live="assertive">
+            {errorMessage}
+          </Alert>
+        )}
+        <Typography variant="h4" component="h1" gutterBottom>
+          Add Client
+        </Typography>
         <TextField
           label="First Name"
           name="firstName"
@@ -76,8 +94,6 @@ const MemberEdit = () => {
           error={!!errors.firstName}
           helperText={errors.firstName}
           fullWidth
-          margin="normal"
-          required
         />
         <TextField
           label="Last Name"
@@ -87,8 +103,15 @@ const MemberEdit = () => {
           error={!!errors.lastName}
           helperText={errors.lastName}
           fullWidth
-          margin="normal"
-          required
+        />
+        <TextField
+          label="Email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          error={!!errors.email}
+          helperText={errors.email}
+          fullWidth
         />
         <TextField
           label="Birth Date"
@@ -99,8 +122,6 @@ const MemberEdit = () => {
           error={!!errors.birthDate}
           helperText={errors.birthDate}
           fullWidth
-          margin="normal"
-          required
           InputLabelProps={{ shrink: true }}
         />
         <TextField
@@ -111,8 +132,6 @@ const MemberEdit = () => {
           error={!!errors.country}
           helperText={errors.country}
           fullWidth
-          margin="normal"
-          required
         />
         <TextField
           label="City"
@@ -122,15 +141,13 @@ const MemberEdit = () => {
           error={!!errors.city}
           helperText={errors.city}
           fullWidth
-          margin="normal"
-          required
         />
         <Button type="submit" variant="contained" color="primary" fullWidth>
-          Update Member
+          Add Client
         </Button>
-      </form>
+      </Box>
     </Container>
   );
 };
 
-export default MemberEdit;
+export default ClientForm;

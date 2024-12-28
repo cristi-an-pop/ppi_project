@@ -1,10 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { AppBar, Toolbar, Typography, Button, IconButton, Box } from '@mui/material';
+import { Typography, Button, IconButton } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import ZoomOutIcon from '@mui/icons-material/ZoomOut';
-import PanToolIcon from '@mui/icons-material/PanTool';
 import { useNavigate } from 'react-router-dom';
 
 const useStyles = makeStyles((theme) => ({

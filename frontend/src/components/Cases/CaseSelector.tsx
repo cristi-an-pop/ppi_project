@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Case } from '../../types/Case';
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import CaseItem from './CaseItem';
 import {
     AppBar,
@@ -19,6 +19,7 @@ import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import casesService from '../../services/cases.service';
 
 const CaseSelector = () => {
+    const { clientId } = useParams<{ clientId: string }>();
     const [cases, setCases] = useState<Case[]>([]);
     const [open, setOpen] = useState<boolean>(false);
     const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
@@ -27,15 +28,15 @@ const CaseSelector = () => {
 
     useEffect(() => {
         fetchCases();
-    }, []);
+    }, [clientId]);
 
     const fetchCases = async () => {
-        const response = await casesService.getAllCases(axiosPrivate);
+        const response = await casesService.getCasesByClientId(axiosPrivate, clientId!);
         setCases(response.data);
     };
 
     const handleAdd = () => {
-        navigate('/cases/new');
+        navigate(`/clients/${clientId}/cases/new`);
     };
 
     const handleDelete = async () => {
