@@ -37,6 +37,7 @@ function App() {
             </Route>
           </Route>
         </Route>
+        <Route path="/case" element={<CaseReport />} />
         <Route path="*" element={<Missing />} />
       </Routes>
     </Router>

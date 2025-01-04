@@ -38,10 +38,6 @@ const ClientList = () => {
     fetchClients();
   }, [sorted]);
 
-  const handleSortToggle = () => {
-    setSorted(!sorted);
-  };
-
   const handleAddClient = () => {
     navigate("/clients/new");
   };
@@ -84,9 +80,6 @@ const ClientList = () => {
         Clients
       </Typography>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-        <Button variant="contained" color="primary" onClick={handleSortToggle}>
-          {sorted ? "Show Clients Unsorted" : "Sort by Closest Birthdays"}
-        </Button>
         <Button variant="contained" color="secondary" onClick={handleAddClient}>
           Add Client
         </Button>
