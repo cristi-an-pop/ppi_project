@@ -8,6 +8,7 @@ const useLogout = () => {
     try {
       await axios.post("/revoke", {}, { withCredentials: true });
       setAuth({});
+      localStorage.removeItem('auth'); 
     } catch (error: any) {
       console.error("Error in logging out.", error);
       return Promise.reject(error);

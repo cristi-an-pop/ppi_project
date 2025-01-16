@@ -10,8 +10,9 @@ import {
 import AuthContext from "../context/AuthProvider";
 import axios from "../api/axios";
 import { useNavigate, useLocation } from "react-router-dom";
+import { API_CONFIG } from "../config/api-config";
 
-const LOGIN_URL = "/login";
+const LOGIN_URL = `${API_CONFIG.baseUrl}/login`;
 
 const Login = () => {
   const { setAuth } = useContext(AuthContext) as any;
@@ -43,6 +44,8 @@ const Login = () => {
       const accessToken = response.data.accessToken;
       const role = response.data.role;
       setAuth({ username, accessToken, role });
+      const authData = JSON.stringify({ username, accessToken, role });
+      localStorage.setItem('auth', authData); 
       navigate(from, { replace: true });
     } catch (error: any) {
       if (error.response) {

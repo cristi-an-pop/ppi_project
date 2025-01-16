@@ -21,7 +21,11 @@ const Case = sequelize.define('Case', {
       model: Client,
       key: 'id',
     }
-  }
+  },
+  image: {
+    type: DataTypes.STRING, 
+    allowNull: true,
+  },
 });
 
 module.exports = Case;

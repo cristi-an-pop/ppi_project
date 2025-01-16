@@ -6,12 +6,14 @@ import {
   Typography,
   Box,
   Alert,
-  Input,
+  IconButton,
 } from "@mui/material";
+import ClearIcon from '@mui/icons-material/Clear';
 import casesService from "../../services/cases.service";
 import { Case } from "../../types/Case";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
 
 const MemberForm = () => {
   const clientId = useParams<{ clientId: string }>().clientId;
@@ -19,9 +21,13 @@ const MemberForm = () => {
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<Case>({
     title: "",
+    clientId: clientId!,
+    image: null,
+    teeth: [],
   });
 
   const [errors, setErrors] = useState<{ [key in keyof Case]?: string }>({});
@@ -32,17 +38,37 @@ const MemberForm = () => {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setImageFile(e.target.files[0]);
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file size (e.g., 5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        setErrorMessage("File size should be less than 5MB");
+        return;
+      }
+
+      setImageFile(file);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+  };
+
 
   useEffect(() => {
     setErrorMessage("");
   }, [formData]);
 
   const validate = (): boolean => {
-    let tempErrors: { [key in keyof Case]?: string } = {};
+    const tempErrors: { [key in keyof Case]?: string } = {};
 
     if (!formData.title) tempErrors.title = "Title is required";
 
@@ -54,15 +80,37 @@ const MemberForm = () => {
     e.preventDefault();
     if (validate()) {
       try {
-        const data = {
-          title: formData.title,
-          clientId: clientId,
+        let imageUrl = imageFile;
+        if (imageFile) {
+          const imageFormData = new FormData();
+          imageFormData.append("image", imageFile);
+
+          const uploadResponse = await axios.post('http://localhost:5000/api/upload', imageFormData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+
+          imageUrl = uploadResponse.data.filepath;
         }
-        await casesService.createCase(axiosPrivate, data);
+
+        const newCase = {
+          title: formData.title,
+          clientId: clientId!,
+          image: imageUrl,
+          teeth: formData.teeth,
+        };
+
+        await casesService.createCase(axiosPrivate, newCase); 
         setFormData({
           title: "",
+          clientId: clientId!,
+          image: null,
+          teeth: [],
         });
         setImageFile(null);
+        setImagePreview(null);
+        setErrorMessage("");
         navigate(`/clients/${clientId}/cases`);
       } catch (error: any) {
         setErrorMessage("Failed to add case");
@@ -72,11 +120,9 @@ const MemberForm = () => {
 
   return (
     <Container maxWidth="sm">
-      <Box
-        component="form"
-        onSubmit={handleSubmit}
-        sx={{ mt: 3, display: "flex", flexDirection: "column", gap: 2 }}
-      >
+      <Box  component="form"
+            onSubmit={handleSubmit}
+            sx={{ mt: 3, display: "flex", flexDirection: "column", gap: 2 }}>
         {errorMessage && (
           <Alert severity="error" aria-live="assertive">
             {errorMessage}
@@ -94,13 +140,47 @@ const MemberForm = () => {
           helperText={errors.title}
           fullWidth
         />
-        <TextField
-          type="file"
-          onChange={handleFileChange}
-          inputProps={{ accept: "image/*" }}
-          fullWidth
-        />
-        <Button type="submit" variant="contained" color="primary" fullWidth>
+        <Box sx={{ position: 'relative' }}>
+          <TextField
+            type="file"
+            onChange={handleFileChange}
+            inputProps={{ 
+              accept: "image/*",
+              style: { cursor: 'pointer' }
+            }}
+            fullWidth
+          />
+          {imagePreview && (
+            <Box sx={{ mt: 2, position: 'relative', display: 'inline-block' }}>
+              <img 
+                src={imagePreview} 
+                alt="Preview" 
+                style={{ 
+                  maxWidth: '100%', 
+                  maxHeight: '200px', 
+                  objectFit: 'contain',
+                  borderRadius: '4px'
+                }} 
+              />
+              <IconButton
+                onClick={handleRemoveImage}
+                sx={{
+                  position: 'absolute',
+                  top: -8,
+                  right: -8,
+                  backgroundColor: 'rgba(0,0,0,0.6)',
+                  color: 'white',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0,0,0,0.8)',
+                  },
+                }}
+                size="small">
+                <ClearIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          )}
+        </Box>
+        <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
           Add Case
         </Button>
       </Box>

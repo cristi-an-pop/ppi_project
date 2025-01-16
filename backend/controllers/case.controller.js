@@ -1,23 +1,109 @@
 const Case = require('../models/case.model');
+const { v4: uuidv4 } = require('uuid');
+const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const sequelize = require('../config/db.config');
+const Tooth = require('../models/tooth.model');
+
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/') // Make sure this directory exists
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname)
+  }
+});
+
+const upload = multer({ storage: storage });
+
+exports.uploadImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).send('No file uploaded.');
+    }
+
+    // Return the file path that will be stored in the Case model
+    res.status(201).json({
+      filepath: req.file.path
+    });
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    res.status(500).send('Error uploading image');
+  }
+};
+
+
+exports.update = async (req, res) => {
+  try {
+    const dbCase = await Case.findByPk(req.params.id);
+    if (!dbCase) {
+      return res.status(404).send('Case not found');
+    }
+    
+    await dbCase.update(req.body);
+    res.json(dbCase);
+  } catch (error) {
+    console.error('Error updating case:', error);
+    res.status(500).send('Error updating case');
+  }
+};
+
+
+exports.getImage = async (req, res) => {
+  try {
+    const dbCase = await Case.findByPk(req.params.id);
+    if (!dbCase || !dbCase.image) {
+      return res.status(404).send('Image not found');
+    }
+    res.sendFile(path.resolve(dbCase.image));
+  } catch (error) {
+    console.error('Error retrieving image:', error);
+    res.status(500).send('Error retrieving image');
+  }
+};
+
 
 // Create a new Case
 exports.create = async (req, res) => {
-  if (!req.body.title || !req.body.clientId) {
-    return res.status(400).send({ message: "All fields are required!" });
-  }
-
-  const caseData = {
-    title: req.body.title,
-    clientId: req.body.clientId,
-  };
+  const transaction = await sequelize.transaction();
 
   try {
-    const data = await Case.create(caseData);
-    res.send(data);
+    const { title, clientId, image, tooth } = req.body;
+    const newCase = await Case.create({title, clientId, image}, {transaction});
+
+    const teethToCreate = Array.from({ length: 32 }, (_, index) => ({
+      caseId: newCase.id,
+      number: index + 1,
+      problems: 'Obturation',
+      severity: index % 2 ? 'Missing' : 'Healthy',
+    }));
+    await Tooth.bulkCreate(teethToCreate, { transaction });
+    await transaction.commit()
+
+    const caseWithTeeth = await Case.findByPk(newCase.id, {
+      include: [{
+        model: Tooth,
+        as: 'teeth'
+      }]
+    });
+
+    res.status(201).json({
+      case: caseWithTeeth
+    });
+
   } catch (error) {
-    res.status(500).send({ message: error.message });
+    await transaction.rollback();
+    console.error('Error creating case with teeth:', error);
+    res.status(500).json({
+      message: 'Error creating case with teeth',
+      error: error.message
+    });
   }
 };
+
+
 
 // Retrieve all Cases
 exports.findAll = async (req, res) => {
@@ -34,7 +120,12 @@ exports.findOne = async (req, res) => {
   const id = req.params.id;
 
   try {
-    const caseData = await Case.findByPk(id);
+    const caseData = await Case.findByPk(id, {
+      include: [{
+        model: Tooth,
+        as: 'teeth'
+      }]
+    });
     if (caseData) {
       res.send(caseData);
     } else {
@@ -66,8 +157,18 @@ exports.findByClientId = async (req, res) => {
   const clientId = req.query.clientId;
   console.log(clientId);
   try {
-    const cases = await Case.findAll({ where: { clientId: clientId } });
-    res.send(cases);
+    const cases = await Case.findAll({ 
+      where: { clientId: clientId },
+      include: [{
+        model: Tooth,
+        as: 'teeth'
+      }],
+      order: [
+      ['createdAt', 'DESC'] // Most recent cases first
+    ]
+  });
+
+    res.status(200).send(cases);
   } catch (error) {
     res.status(500).send({ message: error.message });
   }
