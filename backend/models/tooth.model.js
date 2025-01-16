@@ -11,31 +11,39 @@ const Tooth = sequelize.define('Tooth', {
   },
   class: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   problems: {
     type: DataTypes.STRING,
     allowNull: true,
   },
-  x1: {
+  severity: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  number: {
     type: DataTypes.INTEGER,
     allowNull: false,
+  },
+  x1: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
   },
   y1: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
   },
   x2: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
   },
   y2: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
   },
   confidence: {
     type: DataTypes.FLOAT,
-    allowNull: false,
+    allowNull: true,
   },
   caseId: {
     type: DataTypes.UUID,
@@ -46,5 +54,14 @@ const Tooth = sequelize.define('Tooth', {
     },
   },
 });
+
+Case.hasMany(Tooth, {
+  foreignKey: 'caseId',
+  as: 'teeth'
+});
+Tooth.belongsTo(Case, {
+  foreignKey: 'caseId'
+});
+
 
 module.exports = Tooth;

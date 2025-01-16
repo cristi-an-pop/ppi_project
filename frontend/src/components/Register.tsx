@@ -10,12 +10,13 @@ import {
   Checkbox,
 } from "@mui/material";
 import axios from "../api/axios";
+import { API_CONFIG } from "../config/api-config";
 
 const USER_REGEX = /^[A-z][A-z0-9-_]{3,23}$/;
 const PASSWORD_REGEX =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/;
 
-const REGISTER_URL = "/register";
+const REGISTER_URL = `${API_CONFIG.baseUrl}/register`;
 
 const Register = () => {
   const [username, setUsername] = useState("");
@@ -53,6 +54,7 @@ const Register = () => {
     }
     try {
       const role = isAdmin ? "admin" : "user";
+      console.log(REGISTER_URL);
       const response = await axios.post(
         REGISTER_URL,
         { username, password, role },
