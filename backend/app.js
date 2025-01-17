@@ -39,7 +39,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(multerError);
 
 app.use('/api', authRoutes);
-app.use('/api', refreshTokenRoutes);
+app.use('/api', refreshTokenRoutes); 
 
 //app.use(verifyJwt);
 app.use('/api', clientRoutes);

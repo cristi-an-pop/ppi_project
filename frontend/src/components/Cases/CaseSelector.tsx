@@ -43,6 +43,8 @@ const CaseSelector = () => {
         if (selectedCaseId !== null) {
           try {
             await casesService.deleteCase(axiosPrivate, selectedCaseId);
+            localStorage.removeItem(`${selectedCaseId}`);
+
             setCases(cases.filter((caseItem) => caseItem.id !== selectedCaseId));
           } catch (error) {
             console.error("Failed to delete case", error);

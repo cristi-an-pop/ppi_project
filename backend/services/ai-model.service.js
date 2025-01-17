@@ -4,6 +4,10 @@ const FormData = require('form-data');
 const FLASK_URL = process.env.FLASK_URL || 'http://localhost:5123';
 
 const sendImageToModel = async (endpoint, file) => {
+  if (!file || !file.buffer || !file.originalname || !file.mimetype) {
+    throw new Error('Invalid file object');
+  }
+
   const formData = new FormData();
   formData.append('image', file.buffer, {
     filename: file.originalname,

@@ -78,6 +78,8 @@ def segment_teeth2():
                         'bbox': [x1, y1, x2, y2],
                         'class': class_id,
                         'confidence': confidence,
+                        'class_name': class_name,
+                        'risk_level': risk_level.split()[0]
                     })
                     cv2.rectangle(img, (x1, y1), (x2, y2), (36, 255, 12), 2)
                     cv2.putText(img, f"{class_name} ({risk_level})", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5,

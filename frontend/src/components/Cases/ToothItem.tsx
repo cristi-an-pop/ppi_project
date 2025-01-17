@@ -6,22 +6,29 @@ interface ToothProps {
   number: number;
   severity?: string;
   size?: number;
+  handleToothClick: () => void;
 }
 
-const ToothItem: FC<ToothProps> = ({ id, clientId, number, severity, size = 40}) => {
+const ToothItem: FC<ToothProps> = ({ id, clientId, number, severity, size = 40, handleToothClick}) => {
   const getToothColor = () => {
     switch (severity) {
-      case 'severe':
+      case 'High':
         return 'fill-red-500';
-      case 'moderate':
+      case 'Medium':
+        return 'fill-orange-500';
+      case 'Low':
         return 'fill-yellow-500';
+      case 'Healthy':
+        return 'fill-green-500';
+      case 'Missing':
+        return 'fill-gray-600';
       default:
         return 'fill-gray-600';
     }
   };
 
   return (
-    <div className="flex flex-col items-center gap-1 border-2 col-span-1">
+    <div onClick={handleToothClick} className="flex flex-col items-center gap-1 border-2 col-span-1">
       <svg
         viewBox="0 0 1000 1000"
         className={`w-${1}px h-${1}px ${getToothColor()} transition-colors duration-200`}

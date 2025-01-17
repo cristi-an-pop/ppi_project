@@ -14,6 +14,8 @@ import { Case } from "../../types/Case";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import { useFileStorage } from "@/hooks/useFileStorage";
+
 
 const MemberForm = () => {
   const clientId = useParams<{ clientId: string }>().clientId;
@@ -22,6 +24,8 @@ const MemberForm = () => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const { storeFile } = useFileStorage();
+
 
   const [formData, setFormData] = useState<Case>({
     title: "",
@@ -93,7 +97,6 @@ const MemberForm = () => {
 
           imageUrl = uploadResponse.data.filepath;
         }
-
         const newCase = {
           title: formData.title,
           clientId: clientId!,
@@ -101,7 +104,10 @@ const MemberForm = () => {
           teeth: formData.teeth,
         };
 
-        await casesService.createCase(axiosPrivate, newCase); 
+        const dbCase = await casesService.createCase(axiosPrivate, newCase);
+
+        await storeFile(`${dbCase.data.id!}`, imageFile!); 
+
         setFormData({
           title: "",
           clientId: clientId!,

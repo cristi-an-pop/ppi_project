@@ -77,7 +77,7 @@ exports.create = async (req, res) => {
       caseId: newCase.id,
       number: index + 1,
       problems: 'Obturation',
-      severity: index % 2 ? 'Missing' : 'Healthy',
+      severity: 'Missing',
     }));
     await Tooth.bulkCreate(teethToCreate, { transaction });
     await transaction.commit()
@@ -89,9 +89,7 @@ exports.create = async (req, res) => {
       }]
     });
 
-    res.status(201).json({
-      case: caseWithTeeth
-    });
+    res.status(201).send(caseWithTeeth);
 
   } catch (error) {
     await transaction.rollback();

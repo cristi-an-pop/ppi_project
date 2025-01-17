@@ -1,23 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Case } from '@/types/Case';
 import { Tooth, ToothSeverity } from '@/types/Tooth';
 import { axiosPrivate } from '@/api/axios';
 import casesService from '../../services/cases.service';
 import ToothItem from './ToothItem';
+import aiService from '../../services/ai.service';
+import { useFileStorage } from '@/hooks/useFileStorage';
 
 
 const getSeverityColor = (severity: ToothSeverity): string => {
   const colors = {
-    healthy: 'bg-white border-gray-300',
-    low: 'bg-blue-100 border-blue-300',
-    medium: 'bg-blue-300 border-blue-500',
-    high: 'bg-red-300 border-red-500',
-    missing: 'bg-gray-200 border-gray-400'
+    healthy: 'bg-green-500 border-green-500',
+    low: 'bg-yellow-400 border-yellow-400',
+    medium: 'bg-orange-500 border-orange-500',
+    high: 'bg-red-500 border-red-500',
+    missing: 'bg-gray-600 border-gray-600'
   };
   return colors[severity] || colors.healthy;
 };
@@ -33,6 +35,9 @@ const fetchDentalRecord = async (id: string): Promise<Case> => {
 
 const DentalChart: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const { getFile } = useFileStorage();
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
   
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['id', id],
@@ -40,7 +45,12 @@ const DentalChart: React.FC = () => {
     enabled: !!id
   });
 
+  const queryClient = useQueryClient();
+
+
   const handleToothClick = (tooth: Tooth) => {
+
+    //TODO - Implement tooth click handler call backed
     console.log('Tooth clicked:', tooth);
   };
 
@@ -51,6 +61,49 @@ const DentalChart: React.FC = () => {
   const handleEditNumbers = () => {
     console.log('Edit numbers clicked');
   };
+
+  const handleGetAiAnalysis = async () => {
+    const radiography = await getFile(data!.id!);
+    if (!radiography) {
+      alert('No radiography found');
+      return;
+    }
+    const formData = new FormData();
+    formData.append('image', radiography);
+    formData.append('caseId', id!);
+    //Start animation / placeholder here
+    setIsAnalyzing(true);
+    try {
+      await aiService.getAiAnalysis(axiosPrivate, formData);
+      await fetchDentalRecord(data!.id!);
+      await queryClient.invalidateQueries(['id', id]);
+    } finally {
+      setIsAnalyzing(false);
+    }
+
+    //Stop animation / placeholder here
+  }
+
+  if (isAnalyzing) {
+    return (
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardHeader>
+          <Skeleton className="h-8 w-40" />
+          <div className="flex gap-4">
+            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-10 w-32" />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="w-full h-64 mb-6" />
+          <div className="space-y-4">
+            <Skeleton className="w-full h-24" />
+            <Skeleton className="w-full h-24" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -116,7 +169,7 @@ const DentalChart: React.FC = () => {
           </Button>
           <Button type="button" 
                   variant="outline"
-                  onClick={() => alert('BOOM!')}
+                  onClick={handleGetAiAnalysis}
 
                   className="text-white bg-gradient-to-br from-green-400 to-blue-600 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Analizeaza cu A.I.</Button>
 
@@ -137,11 +190,12 @@ const DentalChart: React.FC = () => {
           {/* Teeth - Combined Upper and Lower */}
           {upperTeeth.concat(lowerTeeth).map((tooth, index) => (
             <ToothItem
-              key={tooth.id}
+              key={`${tooth.id}-${tooth.severity}`}
               id={tooth.id}
               clientId={tooth.clientId}
               number={tooth.number}
               severity={tooth.severity}
+              handleToothClikc={handleToothClick}
             />
           ))}
         </div>
@@ -151,10 +205,11 @@ const DentalChart: React.FC = () => {
         {/* Legend */}
         <div className="mt-6 flex gap-4 justify-center">
           {Object.entries({
-            healthy: 'Healthy',
-            low: 'Treated',
-            high: 'Unhealthy',
-            missing: 'Missing'
+            healthy: 'Sanatos',
+            low: 'Risc scazut',
+            medium: 'Risc mediu',
+            high: 'Risc ridicat',
+            missing: 'Lipsa'
           }).map(([severity, label]) => (
             <div key={severity} className="flex items-center gap-2">
               <div
