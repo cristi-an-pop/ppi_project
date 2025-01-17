@@ -10,11 +10,11 @@ const Tooth = sequelize.define('Tooth', {
     primaryKey: true,
   },
   class: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
     allowNull: true,
   },
-  problems: {
-    type: DataTypes.STRING,
+  problem: {
+    type: DataTypes.INTEGER,
     allowNull: true,
   },
   severity: {
@@ -23,22 +23,22 @@ const Tooth = sequelize.define('Tooth', {
   },
   number: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-  x1: {
-    type: DataTypes.INTEGER,
     allowNull: true,
   },
-  y1: {
-    type: DataTypes.INTEGER,
+  x1: {
+    type: DataTypes.DOUBLE,
     allowNull: true,
   },
   x2: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.DOUBLE,
+    allowNull: true,
+  },
+  y1: {
+    type: DataTypes.DOUBLE,
     allowNull: true,
   },
   y2: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.DOUBLE,
     allowNull: true,
   },
   confidence: {
@@ -53,6 +53,10 @@ const Tooth = sequelize.define('Tooth', {
       key: 'id',
     },
   },
+  description: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  }
 });
 
 Case.hasMany(Tooth, {

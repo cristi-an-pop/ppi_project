@@ -56,6 +56,9 @@ def segment_teeth2():
     file = request.files['image']
     img = cv2.imdecode(np.frombuffer(file.read(), np.uint8), cv2.IMREAD_COLOR)
 
+    # Resize the image to the desired dimensions
+    desired_width, desired_height = 640, 288
+    img = cv2.resize(img, (desired_width, desired_height))
 
     with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
         temp_img_path = temp_file.name
@@ -91,6 +94,88 @@ def segment_teeth2():
     else:
         print(f"Failed to save image to {output_path}")
     return jsonify(predictions)
+
+@main.route('/segment3', methods=['POST'])
+def segment_teeth3():
+    if 'image' not in request.files:
+        return jsonify({'error': 'No image part'}), 400
+
+    file = request.files['image']
+    img = cv2.imdecode(np.frombuffer(file.read(), np.uint8), cv2.IMREAD_COLOR)
+
+    # Resize the image to the desired dimensions
+    desired_width, desired_height = 640, 288
+    img = cv2.resize(img, (desired_width, desired_height))
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
+        temp_img_path = temp_file.name
+        cv2.imwrite(temp_img_path, img)
+
+    predictions = []
+    try:
+        with torch.no_grad():
+            results = current_app.seg_model(img)
+
+            for result in results:
+                for box in result.boxes:
+                    print(box)
+                    class_id = int(box.cls)
+                    confidence = float(box.conf)
+                    x1, y1, x2, y2 = [int(v) for v in box.xyxy[0]]
+
+                    predictions.append({
+                        'bbox': [x1, y1, x2, y2],
+                        'class': class_id,
+                        'confidence': confidence,
+                    })
+                    cv2.rectangle(img, (x1, y1), (x2, y2), (36, 255, 12), 2)
+                    cv2.putText(img, f"{class_id}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                                 (36, 255, 12), 2)
+    finally:
+        os.remove(temp_img_path)
+
+    output_path = 'output.png'
+    if cv2.imwrite(output_path, img):
+        print(f"Image saved successfully to {output_path}")
+    else:
+        print(f"Failed to save image to {output_path}")
+    return jsonify(predictions)
+
+@main.route('/segment2', methods=['POST'])
+def segment22():
+    if 'image' not in request.files:
+        return jsonify({'error': 'No image part'}), 400
+
+    file = request.files['image']
+    img = cv2.imdecode(np.frombuffer(file.read(), np.uint8), cv2.IMREAD_COLOR)
+
+    # Resize the image to the desired dimensions
+    desired_width, desired_height = 640, 288
+    img = cv2.resize(img, (desired_width, desired_height))
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
+        cv2.imwrite(temp_file.name, img)
+        temp_file_path = temp_file.name
+
+    try:
+        result = current_app.robo2_model.predict(temp_file_path).json()
+    finally:
+        os.remove(temp_file_path)
+
+    for prediction in result['predictions']:
+        class_id = int(prediction['class'])
+        points = [(int(p['x']), int(p['y'])) for p in prediction['points']]
+        points = np.array(points, np.int32)
+        points = points.reshape((-1, 1, 2))
+        cv2.polylines(img, [points], isClosed=True, color=(36, 255, 12), thickness=2)
+        cv2.putText(img, f"{class_id}", points[0][0], cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 100, 100), 2)
+    output_path = 'output3.png'
+    if cv2.imwrite(output_path, img):
+        print(f"Image saved successfully to {output_path}")
+    else:
+        print(f"Failed to save image to {output_path}")
+    print(result)
+    return jsonify(result)
 
 @main.route('/segment', methods=['POST'])
 def segment_teeth():

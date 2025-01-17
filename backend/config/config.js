@@ -3,7 +3,7 @@ require('dotenv').config();
 const config = {
     dev: {
         username: process.env.DB_USER || 'postgres',
-        password: process.env.DB_PASSWORD || '2103',
+        password: process.env.DB_PASSWORD || '1234',
         database: process.env.DB_NAME || 'dental',
         host: process.env.DB_HOST || 'localhost',
         dbPort: process.env.DB_PORT || '5432',

@@ -20,6 +20,25 @@ exports.create = async (req, res) => {
   }
 }
 
+// Update a Tooth by id
+exports.update = async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const [updated] = await Tooth.update(req.body, {
+      where: { id: id }
+    });
+
+    if (updated) {
+      const updatedTooth = await Tooth.findOne({ where: { id: id } });
+      return res.send(updatedTooth);
+    }
+    throw new Error('Tooth not found');
+  } catch (error) {
+    return res.status(500).send({ message: error.message });
+  }
+}
+
 // Retrieve all Teeth by CaseId
 exports.findByCaseId = async (req, res) => {
   const caseId = req.params.caseId;

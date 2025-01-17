@@ -30,7 +30,7 @@ exports.segment = async (req, res) => {
     }
 }
 
-exports.combine = async (req, res) => {
+exports.combine2 = async (req, res) => {
     const image = req.file;
   
     if (!image) {
@@ -39,7 +39,7 @@ exports.combine = async (req, res) => {
   
     try {
       const vulnerabilitiesResult = await aiModelService.sendImageToModel('vulnerabilities', image);
-      const segmentResult = await aiModelService.sendImageToModel('segment', image);
+      const segmentResult = await aiModelService.sendImageToModel('segment2', image);
 
       // Calculate center point of vulnerability bbox
       const getVulnerabilityCenter = (bbox) => ({
@@ -77,10 +77,65 @@ exports.combine = async (req, res) => {
         image: segmentResult.image,
         predictions: enrichedPredictions
       };
+
+      console.log("Combined result:", combinedResult);
   
       res.send(combinedResult);
     } catch (error) {
       console.error('Combination error:', error);
       res.status(500).send({ message: "Failed to process image" });
     }
+};
+
+exports.combine = async (req, res) => {
+  const image = req.file;
+
+  if (!image) {
+    return res.status(400).send({ message: "Image is required!" });
+  }
+
+  try {
+    const vulnerabilitiesResult = await aiModelService.sendImageToModel('vulnerabilities', image);
+    const segmentResult = await aiModelService.sendImageToModel('segment3', image);
+
+    // Calculate center point of vulnerability bbox
+    const getVulnerabilityCenter = (bbox) => ({
+      x: (bbox[0] + bbox[2]) / 2,
+      y: (bbox[1] + bbox[3]) / 2
+    });
+
+    // Calculate if point is inside tooth boundary
+    const isPointInTooth = (point, tooth) => {
+      return point.x >= tooth.bbox[0] && 
+             point.x <= tooth.bbox[2] && 
+             point.y >= tooth.bbox[1] && 
+             point.y <= tooth.bbox[3];
+    };
+
+    const enrichedPredictions = segmentResult.map(tooth => {
+      // Find vulnerabilities whose center point falls within this tooth's bounds
+      const matchingVulnerabilities = vulnerabilitiesResult.filter(vulnerability => {
+        const center = getVulnerabilityCenter(vulnerability.bbox);
+        return isPointInTooth(center, tooth);
+      });
+
+      return {
+        ...tooth,
+        vulnerabilities: matchingVulnerabilities
+      };
+    });
+
+    const combinedResult = {
+      image: segmentResult.image,
+      predictions: enrichedPredictions
+    };
+
+    console.log("Combined result:", combinedResult);
+
+    console.log(combinedResult)
+    res.send(combinedResult);
+  } catch (error) {
+    console.error('Combination error:', error);
+    res.status(500).send({ message: "Failed to process image" });
+  }
 };

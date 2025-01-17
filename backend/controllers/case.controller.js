@@ -1,10 +1,30 @@
 const Case = require('../models/case.model');
 const { v4: uuidv4 } = require('uuid');
 const express = require('express');
+const fs = require('fs');
 const multer = require('multer');
 const path = require('path');
 const sequelize = require('../config/db.config');
 const Tooth = require('../models/tooth.model');
+const FormData = require('form-data');
+const axios = require('axios');
+
+const RISK_LEVELS = {
+  0: "Implant",    // Implant
+  1: "Prosthetic restoration",    // Prosthetic restoration
+  2: "Obturation",    // Obturation
+  3: "Endodontic treatment",    // Endodontic treatment
+  12: "Orthodontic device",   // Orthodontic device
+  13: "Surgical device",   // Surgical device
+  4: "Carious lesion", // Carious lesion
+  5: "Bone resorbtion", // Bone resorbtion
+  6: "Impacted tooth", // Impacted tooth
+  10: "Apical srugery",// Apical surgery
+  7: "Apical periodontitis",   // Apical periodontitis
+  8: "Root fragment",   // Root fragment
+  9: "Furcation lesion",   // Furcation lesion
+  11: "Root resorption"   // Root resorption
+}
 
 
 const storage = multer.diskStorage({
@@ -70,17 +90,61 @@ exports.create = async (req, res) => {
   const transaction = await sequelize.transaction();
 
   try {
-    const { title, clientId, image, tooth } = req.body;
-    const newCase = await Case.create({title, clientId, image}, {transaction});
+    const { title, clientId, image } = req.body;
+    const newCase = await Case.create({ title, clientId, image }, { transaction });
 
+    // Read the image file from the file path
+    const imagePath = path.resolve(image);
+    const imageFile = fs.createReadStream(imagePath);
+
+    // Call the combine endpoint of the AI model
+    const formData = new FormData();
+    formData.append('image', imageFile);
+
+    const aiResponse = await axios.post('http://localhost:5000/api/combine', formData, {
+      headers: {
+        ...formData.getHeaders()
+      }
+    });
+
+    const { predictions } = aiResponse.data;
+
+    // Initialize an array with 32 teeth objects
     const teethToCreate = Array.from({ length: 32 }, (_, index) => ({
       caseId: newCase.id,
       number: index + 1,
-      problems: 'Obturation',
-      severity: index % 2 ? 'Missing' : 'Healthy',
+      class: null,
+      problem: -1,
+      x: null,
+      y: null,
+      width: null,
+      height: null,
+      confidence: null,
+      description: ''
     }));
+
+    // Update the detected teeth with the data from the AI response
+    predictions.forEach(prediction => {
+      console.log(prediction.bbox)
+      const toothIndex = prediction.class - 1;
+      if (toothIndex >= 0 && toothIndex < 32) {
+        teethToCreate[toothIndex] = {
+          ...teethToCreate[toothIndex],
+          class: prediction.class,
+          number: prediction.class,
+          problem: prediction.vulnerabilities[0]?.class || 99,
+          x1: prediction.bbox[0],
+          y1: prediction.bbox[1],
+          x2: prediction.bbox[2],
+          y2: prediction.bbox[3],
+          confidence: prediction.confidence,
+          description: RISK_LEVELS[prediction.vulnerabilities[0]?.class] + " | " || ''
+        };
+      }
+    });
+
     await Tooth.bulkCreate(teethToCreate, { transaction });
-    await transaction.commit()
+    await transaction.commit();
 
     const caseWithTeeth = await Case.findByPk(newCase.id, {
       include: [{
